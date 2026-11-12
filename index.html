@@ -33,7 +33,7 @@
         
         /* Navigation Tabs */
         .tabs { display: flex; gap: 6px; padding: 12px 16px 0; max-width: 600px; margin: 0 auto; }
-        .tab-btn { flex: 1; padding: 10px 6px; border: 1px solid var(--border); background: var(--card); color: var(--muted); border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: 0.2s; text-align: center; }
+        .tab-btn { flex: 1; padding: 10px 4px; border: 1px solid var(--border); background: var(--card); color: var(--muted); border-radius: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: 0.2s; text-align: center; }
         .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
         /* Main Container */
@@ -115,6 +115,7 @@
 <div class="tabs">
     <button class="tab-btn active" id="btn-tab-fuerza" onclick="switchTab('fuerza', this)">💪 L-M-V Fuerza</button>
     <button class="tab-btn" id="btn-tab-quema" onclick="switchTab('quema', this)">🔥 M-J Quema</button>
+    <button class="tab-btn" id="btn-tab-sd" onclick="switchTab('sd', this)">👟 S-D 6km</button>
     <button class="tab-btn" id="btn-tab-dieta" onclick="switchTab('dieta', this)">🥩 Dieta & 6km</button>
 </div>
 
@@ -171,11 +172,28 @@
         <button class="reset-btn" onclick="resetWorkout('quema')">🔄 Reiniciar Casillas de M-J</button>
     </div>
 
-    <!-- TAB 3: DIETA FIJA, ANSIEDAD Y PESO -->
+    <!-- TAB 3: SÁBADO Y DOMINGO (6.0 KM DIARIOS) -->
+    <div id="tab-sd" class="tab-content">
+        <div class="phase-title">
+            <span>Sábado: Meta Diaria 6.0 km (~8,000 pasos)</span>
+            <span class="phase-subtitle">2 vueltas de 3.0 km (~35 min c/u)</span>
+        </div>
+        <div id="sabado-km-list"></div>
+
+        <div class="phase-title">
+            <span>Domingo: Meta Diaria 6.0 km (~8,000 pasos)</span>
+            <span class="phase-subtitle">2 vueltas de 3.0 km (~35 min c/u)</span>
+        </div>
+        <div id="domingo-km-list"></div>
+
+        <button class="reset-btn" onclick="resetWorkout('sd')">🔄 Reiniciar Casillas de Sábado y Domingo</button>
+    </div>
+
+    <!-- TAB 4: DIETA FIJA, ANSIEDAD Y PESO -->
     <div id="tab-dieta" class="tab-content">
         <div class="card">
             <div class="ex-title" style="margin-bottom: 4px;">✅ Check Diario: Menú (~1,970 kcal) + 6 km</div>
-            <div class="ex-desc">Marca tus comidas y tus 2 bloques de 3 km todos los días.</div>
+            <div class="ex-desc">Marca tus comidas y tus 2 bloques de 3 km todos los días (Lunes a Domingo).</div>
             <div id="meals-list"></div>
             <button class="t-btn" style="width:100%; margin-top:12px; padding:10px;" onclick="resetMeals()">Reiniciar Check de Hoy</button>
         </div>
@@ -284,6 +302,44 @@
             desc: 'Divide tus 6 km en 2 salidas de 3 km (1.5 km de ida y 1.5 km de regreso a paso firme, ~35 min por salida).',
             sets: 2,
             setLabels: ['✓ Vuelta 1 (3.0 km)', '✓ Vuelta 2 (3.0 km)'],
+            timer: 0
+        }
+    ];
+
+    const sabadoKmData = [
+        {
+            id: 'sd_sab1',
+            name: 'Sábado Vuelta 1: 3.0 km (~4,000 pasos)',
+            badge: '3.0 km (~35m)',
+            isKm: true,
+            desc: 'Camina a tu punto fijo a 1.5 km de casa y regresa (3 km totales) a paso firme constante.',
+            timer: 0
+        },
+        {
+            id: 'sd_sab2',
+            name: 'Sábado Vuelta 2: 3.0 km (~4,000 pasos)',
+            badge: '3.0 km (~35m)',
+            isKm: true,
+            desc: 'Segunda vuelta de 1.5 km de ida y 1.5 km de regreso para completar tus 6.0 km del sábado.',
+            timer: 0
+        }
+    ];
+
+    const domingoKmData = [
+        {
+            id: 'sd_dom1',
+            name: 'Domingo Vuelta 1: 3.0 km (~4,000 pasos)',
+            badge: '3.0 km (~35m)',
+            isKm: true,
+            desc: 'Camina a tu punto fijo a 1.5 km de casa y regresa (3 km totales) a paso firme constante.',
+            timer: 0
+        },
+        {
+            id: 'sd_dom2',
+            name: 'Domingo Vuelta 2: 3.0 km (~4,000 pasos)',
+            badge: '3.0 km (~35m)',
+            isKm: true,
+            desc: 'Segunda vuelta de 1.5 km de ida y 1.5 km de regreso para cerrar la semana con tus 6.0 km del domingo.',
             timer: 0
         }
     ];
@@ -569,6 +625,10 @@
         const mobData = cooldownData.map(c => ({ ...c, id: 'mj_' + c.id }));
         renderWarmupOrCooldown(mobData, 'mobility-list');
 
+        // Render Sábado y Domingo Walk (6.0 km)
+        renderWarmupOrCooldown(sabadoKmData, 'sabado-km-list');
+        renderWarmupOrCooldown(domingoKmData, 'domingo-km-list');
+
         // Render Meals + Daily 6km
         const mContainer = document.getElementById('meals-list');
         mContainer.innerHTML = mealsData.map(m => {
@@ -593,6 +653,8 @@
         if (key === 'km_daily_s2') { state.completed['mj_w2_s1'] = state.completed[key]; state.meals['m_km2'] = state.completed[key]; }
         if (key === 'mj_w1_s1') { state.completed['km_daily_s1'] = state.completed[key]; state.meals['m_km1'] = state.completed[key]; }
         if (key === 'mj_w2_s1') { state.completed['km_daily_s2'] = state.completed[key]; state.meals['m_km2'] = state.completed[key]; }
+        if (key === 'sd_sab1_s1' || key === 'sd_dom1_s1') { state.meals['m_km1'] = state.completed[key]; }
+        if (key === 'sd_sab2_s1' || key === 'sd_dom2_s1') { state.meals['m_km2'] = state.completed[key]; }
         saveState();
         renderAll();
         if (state.completed[key] && autoTimerSeconds > 0) {
@@ -623,6 +685,9 @@
                 for (let i = 1; i <= 3; i++) keysToCount.push(`${item.id}_s${i}`);
             });
             cooldownData.forEach(item => keysToCount.push(`mj_${item.id}_s1`));
+        } else if (state.activeTab === 'sd') {
+            sabadoKmData.forEach(item => keysToCount.push(`${item.id}_s1`));
+            domingoKmData.forEach(item => keysToCount.push(`${item.id}_s1`));
         } else {
             mealsData.forEach(m => keysToCount.push(`meal_${m.id}`));
         }
@@ -641,14 +706,18 @@
     }
 
     function resetWorkout(type) {
-        if (confirm('¿Reiniciar las casillas completadas de este día? (Tus números de correa y pesos se conservan).')) {
+        if (confirm('¿Reiniciar las casillas completadas de este bloque? (Tus números de correa y pesos se conservan).')) {
             if (type === 'fuerza') {
                 Object.keys(state.completed).forEach(k => {
-                    if (!k.startsWith('mj_')) delete state.completed[k];
+                    if (!k.startsWith('mj_') && !k.startsWith('sd_')) delete state.completed[k];
                 });
-            } else {
+            } else if (type === 'quema') {
                 Object.keys(state.completed).forEach(k => {
                     if (k.startsWith('mj_')) delete state.completed[k];
+                });
+            } else if (type === 'sd') {
+                Object.keys(state.completed).forEach(k => {
+                    if (k.startsWith('sd_')) delete state.completed[k];
                 });
             }
             saveState();
@@ -733,7 +802,7 @@
         updateProgress();
     }
 
-    // Detector de Día Automático
+    // Detector de Día Automático (Lunes a Domingo)
     function initDayIndicator() {
         const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
         const d = new Date().getDay();
@@ -745,8 +814,8 @@
             banner.innerText = `📅 Hoy es ${days[d]}: Toca Quema M-J + 6.0 km`;
             switchTab('quema', document.getElementById('btn-tab-quema'));
         } else {
-            banner.innerText = `📅 Hoy es ${days[d]}: Descanso Activo (6.0 km + Dieta)`;
-            switchTab('dieta', document.getElementById('btn-tab-dieta'));
+            banner.innerText = `📅 Hoy es ${days[d]}: Toca Caminata S-D (6.0 km) + Dieta`;
+            switchTab('sd', document.getElementById('btn-tab-sd'));
         }
     }
 
