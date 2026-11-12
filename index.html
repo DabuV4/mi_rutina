@@ -30,9 +30,18 @@
         .day-banner { max-width: 600px; margin: 0 auto 8px; font-size: 0.78rem; color: var(--info); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
         .progress-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--border); height: 10px; border-radius: 99px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+
+        /* Weekly 6km Streak Bar */
+        .streak-bar { max-width: 600px; margin: 12px auto 0; padding: 0 16px; }
+        .streak-box { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+        .streak-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.8rem; font-weight: 700; }
+        .streak-days { display: flex; gap: 6px; }
+        .day-pill { flex: 1; padding: 8px 0; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); font-weight: 800; font-size: 0.8rem; text-align: center; cursor: pointer; transition: 0.15s; }
+        .day-pill.done { background: var(--accent); color: #000; border-color: var(--accent); }
+        .streak-reset { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         
         /* Navigation Tabs */
-        .tabs { display: flex; gap: 6px; padding: 12px 16px 0; max-width: 600px; margin: 0 auto; }
+        .tabs { display: flex; gap: 6px; padding: 10px 16px 0; max-width: 600px; margin: 0 auto; }
         .tab-btn { flex: 1; padding: 10px 4px; border: 1px solid var(--border); background: var(--card); color: var(--muted); border-radius: 8px; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: 0.2s; text-align: center; }
         .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
@@ -74,9 +83,10 @@
         .timer-digits.running { color: var(--warning); }
         .timer-digits.finished { color: var(--danger); animation: pulse 0.8s infinite; }
         .timer-controls { display: flex; gap: 5px; flex-wrap: wrap; }
-        .t-btn { flex: 1; padding: 8px 4px; border-radius: 6px; background: var(--card); color: var(--text); font-weight: 700; font-size: 0.76rem; cursor: pointer; border: 1px solid var(--border); text-align: center; }
+        .t-btn { flex: 1; padding: 8px 4px; border-radius: 6px; background: var(--card); color: var(--text); font-weight: 700; font-size: 0.74rem; cursor: pointer; border: 1px solid var(--border); text-align: center; white-space: nowrap; }
         .t-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
         .t-btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .t-btn.km-timer { border-color: var(--info); color: var(--info); }
 
         /* Diet, Lists & Weight Styles */
         .meal-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
@@ -92,6 +102,7 @@
         .weight-box { display: flex; gap: 8px; margin-top: 10px; }
         .weight-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; }
         .reset-btn { width: 100%; padding: 12px; margin-top: 16px; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 8px; font-weight: 700; cursor: pointer; }
+        details summary { cursor: pointer; font-weight: 700; color: var(--accent); font-size: 0.9rem; padding: 6px 0; outline: none; }
 
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     </style>
@@ -112,11 +123,22 @@
     </div>
 </header>
 
+<!-- RACHA SEMANAL DE 7 DÍAS (6.0 KM) -->
+<div class="streak-bar">
+    <div class="streak-box">
+        <div class="streak-header">
+            <span id="streak-counter" style="color:var(--accent);">🔥 Racha Semanal 6.0 km: 0/7 días</span>
+            <button class="streak-reset" onclick="resetStreak()">🔄 Reiniciar Semana</button>
+        </div>
+        <div class="streak-days" id="streak-days-container"></div>
+    </div>
+</div>
+
 <div class="tabs">
     <button class="tab-btn active" id="btn-tab-fuerza" onclick="switchTab('fuerza', this)">💪 L-M-V Fuerza</button>
     <button class="tab-btn" id="btn-tab-quema" onclick="switchTab('quema', this)">🔥 M-J Quema</button>
     <button class="tab-btn" id="btn-tab-sd" onclick="switchTab('sd', this)">👟 S-D 6km</button>
-    <button class="tab-btn" id="btn-tab-dieta" onclick="switchTab('dieta', this)">🥩 Dieta & 6km</button>
+    <button class="tab-btn" id="btn-tab-dieta" onclick="switchTab('dieta', this)">🥩 Dieta & Súper</button>
 </div>
 
 <div class="container">
@@ -189,7 +211,7 @@
         <button class="reset-btn" onclick="resetWorkout('sd')">🔄 Reiniciar Casillas de Sábado y Domingo</button>
     </div>
 
-    <!-- TAB 4: DIETA FIJA, ANSIEDAD Y PESO -->
+    <!-- TAB 4: DIETA FIJA, SÚPER, ANSIEDAD Y PESO -->
     <div id="tab-dieta" class="tab-content">
         <div class="card">
             <div class="ex-title" style="margin-bottom: 4px;">✅ Check Diario: Menú (~1,970 kcal) + 6 km</div>
@@ -224,6 +246,16 @@
                 <strong>Paso 3: Si tienes que comprar comida en la calle</strong>
                 Pide pollo asado/rostizado (sin piel, con tortillas de maíz y salsa) o 1 hamburguesa sencilla sin mayonesa, sin papas fritas y con refresco sin azúcar.
             </div>
+        </div>
+
+        <div class="card">
+            <div class="ex-title" style="margin-bottom: 4px;">🛍️ Lista del Súper Semanal (Cantidades para 7 Días)</div>
+            <div class="ex-desc">Cantidades exactas para cumplir tu menú fijo toda la semana sin que te falte nada:</div>
+            <details open>
+                <summary>Ver / Ocultar Checklist del Súper</summary>
+                <div id="grocery-list" style="margin-top: 8px;"></div>
+                <button class="t-btn" style="width:100%; margin-top:12px; padding:10px;" onclick="resetGrocery()">Reiniciar Lista del Súper</button>
+            </details>
         </div>
 
         <div class="card">
@@ -288,11 +320,22 @@
         <button class="t-btn" onclick="startCustomTimer(30, 'Estiramiento (30s)')">30s</button>
         <button class="t-btn" onclick="startCustomTimer(40, 'Trabajo / Calentamiento (40s)')">40s</button>
         <button class="t-btn" onclick="startCustomTimer(45, 'Estiramiento (45s)')">45s</button>
-        <button class="t-btn" onclick="startCustomTimer(90, 'Descanso Serie (90s)')">90s (Serie)</button>
+        <button class="t-btn" onclick="startCustomTimer(90, 'Descanso Serie (90s)')">90s</button>
+        <button class="t-btn km-timer" onclick="startCustomTimer(2100, 'Caminata 3.0 km (35 min)')">35m (3km)</button>
     </div>
 </div>
 
 <script>
+    const weekDaysMeta = [
+        { key: 'd1', label: 'L' },
+        { key: 'd2', label: 'M' },
+        { key: 'd3', label: 'X' },
+        { key: 'd4', label: 'J' },
+        { key: 'd5', label: 'V' },
+        { key: 'd6', label: 'S' },
+        { key: 'd0', label: 'D' }
+    ];
+
     const kmDailyCard = [
         {
             id: 'km_daily',
@@ -546,13 +589,31 @@
         { id: 'm5', title: '💧 Hidratación Meta (2.5 a 3 Litros)', desc: 'Agua natural, agua mineral con limón o refresco sin azúcar (Cero calorías líquidas).' }
     ];
 
+    const groceryData = [
+        { id: 'g1', title: '🥚 Huevo entero: 1 cartera de 30 piezas', desc: 'Usas 28 huevos a la semana (4 diarios en el desayuno).' },
+        { id: 'g2', title: '🍗 Pechuga de pollo / Res magra / Pescado: 1.6 kg', desc: 'Para tus 7 comidas fuertes de 220g en crudo.' },
+        { id: 'g3', title: '🐟 Atún en agua (o Pollo / Queso Panela): 14 latas', desc: '2 latas por cena (o compra 8 latas + 600g de queso panela/pollo para variar).' },
+        { id: 'g4', title: '🥣 Yogur Griego SIN azúcar: 1.4 kg (2 botes grandes)', desc: '200g diarios para tu snack de la tarde anti-ansiedad.' },
+        { id: 'g5', title: '🌮 Tortillas de maíz (1 kg) + 1 paq. Tostadas Horneadas', desc: '21 tortillas (3 por desayuno) y 21 tostadas horneadas (3 por cena).' },
+        { id: 'g6', title: '🍚 Arroz blanco o integral: 1 bolsa de 1 kg (o 1.5 kg de papa)', desc: 'Para cocinar en tanda tus porciones de 1.5 tazas de arroz cocido.' },
+        { id: 'g7', title: '🥑 Aguacate (4 a 5 piezas) + Almendras (150g)', desc: 'Cubre tu 1/3 de aguacate en comida, 1/4 en cena y 15 almendras diarias.' },
+        { id: 'g8', title: '🍎 Frutas para el snack: 7 piezas (Manzanas / Plátanos)', desc: '1 pieza diaria picada sobre el yogur griego.' },
+        { id: 'g9', title: '🥦 Verduras base: Espinaca, jitomate, cebolla, brócoli/calabaza', desc: 'Para los huevos en la mañana, el pico de gallo de la cena y medio plato en la comida.' },
+        { id: 'g10', title: '🥒 Kit SOS Anti-Ansiedad: 4 pepinos, 2 jícamas, gelatina light', desc: 'Más limones, Tajín/salsa picante, agua mineral y refresco sin azúcar.' }
+    ];
+
     let state = JSON.parse(localStorage.getItem('calistenia_v2_state')) || {
         completed: {},
         straps: {},
         meals: {},
         weights: [],
+        weekStreak: {},
+        grocery: {},
         activeTab: 'fuerza'
     };
+
+    if (!state.weekStreak) state.weekStreak = {};
+    if (!state.grocery) state.grocery = {};
 
     const oldState = JSON.parse(localStorage.getItem('calistenia_state'));
     if (oldState && (!state.weights || state.weights.length === 0)) {
@@ -564,6 +625,49 @@
     function saveState() {
         localStorage.setItem('calistenia_v2_state', JSON.stringify(state));
         updateProgress();
+        renderStreak();
+    }
+
+    function renderStreak() {
+        const container = document.getElementById('streak-days-container');
+        if (!container) return;
+        let count = 0;
+        container.innerHTML = weekDaysMeta.map(d => {
+            const isDone = !!state.weekStreak[d.key];
+            if (isDone) count++;
+            return `<div class="day-pill ${isDone ? 'done' : ''}" onclick="toggleStreakDay('${d.key}')">${d.label}</div>`;
+        }).join('');
+        document.getElementById('streak-counter').innerText = `🔥 Racha Semanal 6.0 km: ${count}/7 días`;
+    }
+
+    function toggleStreakDay(dayKey) {
+        state.weekStreak[dayKey] = !state.weekStreak[dayKey];
+        saveState();
+    }
+
+    function resetStreak() {
+        if (confirm('¿Reiniciar el contador semanal de 7 días para arrancar una nueva semana?')) {
+            state.weekStreak = {};
+            saveState();
+        }
+    }
+
+    function checkAutoStreak(fromKey) {
+        const todayKey = 'd' + new Date().getDay();
+        if (fromKey && fromKey.startsWith('sd_sab')) {
+            state.weekStreak['d6'] = !!(state.completed['sd_sab1_s1'] && state.completed['sd_sab2_s1']);
+        } else if (fromKey && fromKey.startsWith('sd_dom')) {
+            state.weekStreak['d0'] = !!(state.completed['sd_dom1_s1'] && state.completed['sd_dom2_s1']);
+        } else {
+            const bothDone = !!(
+                (state.completed['km_daily_s1'] && state.completed['km_daily_s2']) ||
+                (state.completed['mj_w1_s1'] && state.completed['mj_w2_s1']) ||
+                (state.meals['m_km1'] && state.meals['m_km2'])
+            );
+            if (bothDone) {
+                state.weekStreak[todayKey] = true;
+            }
+        }
     }
 
     function renderWarmupOrCooldown(dataArray, containerId) {
@@ -591,6 +695,7 @@
     }
 
     function renderAll() {
+        renderStreak();
         renderWarmupOrCooldown(kmDailyCard, 'daily-km-fuerza');
         renderWarmupOrCooldown(warmupData, 'warmup-list');
 
@@ -642,6 +747,21 @@
             </label>`;
         }).join('');
 
+        // Render Grocery List
+        const gContainer = document.getElementById('grocery-list');
+        if (gContainer) {
+            gContainer.innerHTML = groceryData.map(g => {
+                const checked = state.grocery[g.id] ? 'checked' : '';
+                return `<label class="meal-item">
+                    <input type="checkbox" class="meal-check" ${checked} onchange="toggleGrocery('${g.id}', this.checked)">
+                    <div>
+                        <div style="font-weight:700; color:#fff; font-size:0.88rem;">${g.title}</div>
+                        <div style="font-size:0.8rem; color:var(--muted); margin-top:2px;">${g.desc}</div>
+                    </div>
+                </label>`;
+            }).join('');
+        }
+
         renderWeights();
         updateProgress();
     }
@@ -655,6 +775,7 @@
         if (key === 'mj_w2_s1') { state.completed['km_daily_s2'] = state.completed[key]; state.meals['m_km2'] = state.completed[key]; }
         if (key === 'sd_sab1_s1' || key === 'sd_dom1_s1') { state.meals['m_km1'] = state.completed[key]; }
         if (key === 'sd_sab2_s1' || key === 'sd_dom2_s1') { state.meals['m_km2'] = state.completed[key]; }
+        checkAutoStreak(key);
         saveState();
         renderAll();
         if (state.completed[key] && autoTimerSeconds > 0) {
@@ -706,7 +827,7 @@
     }
 
     function resetWorkout(type) {
-        if (confirm('¿Reiniciar las casillas completadas de este bloque? (Tus números de correa y pesos se conservan).')) {
+        if (confirm('¿Reiniciar las casillas completadas de este bloque? (Tu racha semanal, correas y pesos se conservan).')) {
             if (type === 'fuerza') {
                 Object.keys(state.completed).forEach(k => {
                     if (!k.startsWith('mj_') && !k.startsWith('sd_')) delete state.completed[k];
@@ -729,6 +850,7 @@
         state.meals[id] = val;
         if (id === 'm_km1') { state.completed['km_daily_s1'] = val; state.completed['mj_w1_s1'] = val; }
         if (id === 'm_km2') { state.completed['km_daily_s2'] = val; state.completed['mj_w2_s1'] = val; }
+        checkAutoStreak(id);
         saveState();
         renderAll();
     }
@@ -739,6 +861,17 @@
         delete state.completed['km_daily_s2'];
         delete state.completed['mj_w1_s1'];
         delete state.completed['mj_w2_s1'];
+        saveState();
+        renderAll();
+    }
+
+    function toggleGrocery(id, val) {
+        state.grocery[id] = val;
+        saveState();
+    }
+
+    function resetGrocery() {
+        state.grocery = {};
         saveState();
         renderAll();
     }
@@ -784,6 +917,8 @@
             const parsed = JSON.parse(input);
             if (parsed && typeof parsed === 'object') {
                 state = parsed;
+                if (!state.weekStreak) state.weekStreak = {};
+                if (!state.grocery) state.grocery = {};
                 saveState();
                 renderAll();
                 alert('¡Datos restaurados con éxito!');
