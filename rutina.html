@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Plan 5 Días: Calistenia Adaptada & Dieta Fija</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --info: #38bdf8;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #334155;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 145px; line-height: 1.45; }
+        
+        /* Header & Progress */
+        header { position: sticky; top: 0; z-index: 50; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        h1 { font-size: 1.1rem; font-weight: 800; color: var(--accent); letter-spacing: 0.3px; }
+        .progress-container { width: 100%; max-width: 600px; margin: 0 auto; background: var(--border); height: 10px; border-radius: 99px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+        
+        /* Navigation Tabs */
+        .tabs { display: flex; gap: 6px; padding: 12px 16px 0; max-width: 600px; margin: 0 auto; }
+        .tab-btn { flex: 1; padding: 10px 6px; border: 1px solid var(--border); background: var(--card); color: var(--muted); border-radius: 8px; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: 0.2s; text-align: center; }
+        .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        /* Main Container */
+        .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Section Titles */
+        .phase-title { font-size: 1.05rem; font-weight: 800; margin: 22px 0 10px; padding-bottom: 6px; border-bottom: 2px solid var(--accent); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+        .phase-title:first-child { margin-top: 4px; }
+        .phase-subtitle { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+
+        /* Exercise Cards */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+        .ex-title { font-size: 1rem; font-weight: 700; color: #fff; }
+        .ex-badge { background: #334155; color: #cbd5e1; font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; font-weight: 600; white-space: nowrap; }
+        .ex-desc { font-size: 0.86rem; color: var(--muted); margin-bottom: 10px; }
+        .ex-steps { background: rgba(15, 23, 42, 0.55); border-left: 3px solid var(--info); padding: 8px 10px; border-radius: 0 8px 8px 0; font-size: 0.82rem; color: #e2e8f0; margin-bottom: 12px; }
+        .ex-steps strong { color: var(--info); }
+        
+        /* Strap Number Input */
+        .strap-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; font-size: 0.84rem; background: rgba(15, 23, 42, 0.6); padding: 6px 10px; border-radius: 8px; }
+        .strap-input { width: 70px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--warning); font-weight: 700; text-align: center; }
+
+        /* Sets & Checkboxes */
+        .sets-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .set-btn { flex: 1; min-width: 75px; padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-weight: 700; font-size: 0.84rem; cursor: pointer; transition: 0.15s; text-align: center; }
+        .set-btn.done { background: var(--accent); color: #000; border-color: var(--accent); }
+        .timer-quick-btn { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--warning); background: transparent; color: var(--warning); font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+
+        /* Sticky Bottom Timer Bar */
+        .timer-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #090d16; border-top: 2px solid var(--border); padding: 10px 16px; z-index: 100; display: flex; flex-direction: column; gap: 8px; max-width: 600px; margin: 0 auto; }
+        .timer-display-row { display: flex; justify-content: space-between; align-items: center; }
+        .timer-digits { font-size: 1.9rem; font-weight: 900; font-variant-numeric: tabular-nums; color: var(--accent); line-height: 1.1; }
+        .timer-digits.running { color: var(--warning); }
+        .timer-digits.finished { color: var(--danger); animation: pulse 0.8s infinite; }
+        .timer-controls { display: flex; gap: 5px; flex-wrap: wrap; }
+        .t-btn { flex: 1; padding: 8px 4px; border-radius: 6px; background: var(--card); color: var(--text); font-weight: 700; font-size: 0.76rem; cursor: pointer; border: 1px solid var(--border); text-align: center; }
+        .t-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+        .t-btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+        /* Diet, Lists & Weight Styles */
+        .meal-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .meal-item:last-child { border-bottom: none; }
+        .meal-check { width: 22px; height: 22px; accent-color: var(--accent); margin-top: 2px; cursor: pointer; flex-shrink: 0; }
+        .food-pill-group { margin-top: 8px; }
+        .food-cat { font-size: 0.85rem; font-weight: 700; color: var(--accent); margin: 10px 0 4px; }
+        .food-list { font-size: 0.84rem; color: #e2e8f0; background: rgba(15, 23, 42, 0.5); padding: 8px 10px; border-radius: 8px; }
+        .sos-step { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 8px; padding: 10px; margin-top: 8px; font-size: 0.84rem; }
+        .sos-step strong { color: var(--warning); display: block; margin-bottom: 2px; }
+        .weight-box { display: flex; gap: 8px; margin-top: 10px; }
+        .weight-input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 0.95rem; }
+        .reset-btn { width: 100%; padding: 12px; margin-top: 16px; background: transparent; border: 1px solid var(--danger); color: var(--danger); border-radius: 8px; font-weight: 700; cursor: pointer; }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-top">
+        <h1>PLAN 5 DÍAS • SIN LESIONES</h1>
+        <span id="progress-text" style="font-size: 0.82rem; font-weight: 700; color: var(--muted);">0% Día</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+</header>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('fuerza', this)">💪 L-M-V Fuerza</button>
+    <button class="tab-btn" onclick="switchTab('quema', this)">🔥 M-J Quema</button>
+    <button class="tab-btn" onclick="switchTab('dieta', this)">🥩 Dieta & SOS</button>
+</div>
+
+<div class="container">
+    <!-- TAB 1: L-M-V FUERZA ADAPTADA -->
+    <div id="tab-fuerza" class="tab-content active">
+        <div class="phase-title">
+            <span>Fase 1: Calentamiento Progresivo</span>
+            <span class="phase-subtitle">8-10 min • Pies apoyados en barra</span>
+        </div>
+        <div id="warmup-list"></div>
+
+        <div class="phase-title">
+            <span>Fase 2: Fuerza Adaptada (90+ kg)</span>
+            <span class="phase-subtitle">Cero dolor articular • 90s descanso</span>
+        </div>
+        <div id="strength-list"></div>
+
+        <div class="phase-title">
+            <span>Fase 3: Enfriamiento Paso a Paso</span>
+            <span class="phase-subtitle">5-6 min • Guía de postura</span>
+        </div>
+        <div id="cooldown-list"></div>
+
+        <button class="reset-btn" onclick="resetWorkout('fuerza')">🔄 Reiniciar Casillas de L-M-V</button>
+    </div>
+
+    <!-- TAB 2: M-J QUEMA Y MOVILIDAD -->
+    <div id="tab-quema" class="tab-content">
+        <div class="phase-title">
+            <span>Bloque 1: Caminata Activa Dividida</span>
+            <span class="phase-subtitle">40 min totales (~4,500 pasos)</span>
+        </div>
+        <div id="walk-list"></div>
+
+        <div class="phase-title">
+            <span>Bloque 2: Circuito Metabólico Sin Saltos</span>
+            <span class="phase-subtitle">3 Rondas • 40s trabajo x 20s descanso</span>
+        </div>
+        <div id="cardio-list"></div>
+
+        <div class="phase-title">
+            <span>Bloque 3: Descompresión Articular</span>
+            <span class="phase-subtitle">Descarga de hombros, espalda y cadera</span>
+        </div>
+        <div id="mobility-list"></div>
+
+        <button class="reset-btn" onclick="resetWorkout('quema')">🔄 Reiniciar Casillas de M-J</button>
+    </div>
+
+    <!-- TAB 3: DIETA FIJA, ANSIEDAD Y PESO -->
+    <div id="tab-dieta" class="tab-content">
+        <div class="card">
+            <div class="ex-title" style="margin-bottom: 4px;">✅ Check Diario: Menú Fijo (~1,970 kcal)</div>
+            <div class="ex-desc">Déficit seguro sin pasar hambre (~160g proteína al día).</div>
+            <div id="meals-list"></div>
+            <button class="t-btn" style="width:100%; margin-top:12px; padding:10px;" onclick="resetMeals()">Reiniciar Día de Comidas</button>
+        </div>
+
+        <div class="card">
+            <div class="ex-title" style="margin-bottom: 4px;">🚨 Botón SOS: Ansiedad de Comer</div>
+            <div class="ex-desc">Aplica estos 3 pasos en orden cuando sientas ganas de picar o pedir comida:</div>
+            <div class="sos-step">
+                <strong>Paso 1 (Minuto 0 a 5): Freno de Volumen Líquido</strong>
+                Toma un vaso grande con mucho hielo de agua mineral con limón y sal, o tu refresco sin azúcar. El gas llena el estómago y calma la urgencia cerebral.
+            </div>
+            <div class="sos-step">
+                <strong>Paso 2 (Minuto 5 a 15): Comodín Crujiente o Dulce</strong>
+                Si necesitas masticar algo ya, come un plato grande de pepino o jícama con limón, Tajín y salsa picante (<40 kcal), o un tazón grande de gelatina light sin azúcar.
+            </div>
+            <div class="sos-step">
+                <strong>Paso 3: Si tienes que comprar comida en la calle</strong>
+                Pide pollo asado/rostizado (sin piel, con tortillas de maíz y salsa) o 1 hamburguesa sencilla sin mayonesa, sin papas fritas y con refresco sin azúcar.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="ex-title" style="margin-bottom: 4px;">🛒 Lista Cerrada ("Solo como esto")</div>
+            <div class="ex-desc">No te compliques: arma todas tus comidas solo con estos ingredientes:</div>
+            <div class="food-pill-group">
+                <div class="food-cat">🥩 1. Proteínas (Elige 1 por comida)</div>
+                <div class="food-list">Huevo entero, pechuga de pollo, bistec de res magro, atún en agua, filete de pescado, queso panela/cottage, yogur griego sin azúcar.</div>
+                <div class="food-cat">🍚 2. Carbohidratos Medidos</div>
+                <div class="food-list">Tortillas de maíz, tostadas horneadas, arroz cocido, papa cocida/al horno, avena y fruta (manzana, plátano, fresas).</div>
+                <div class="food-cat">🥑 3. Grasas Controladas</div>
+                <div class="food-list">Aguacate (1/3 en comida, 1/4 en cena), almendras (15 pzas) y aceite en spray.</div>
+                <div class="food-cat">🥒 4. Libres (Volumen Infinito)</div>
+                <div class="food-list">Pepino, jícama, apio, lechuga, espinaca, calabacita, brócoli, jitomate, cebolla, salsa casera, gelatina sin azúcar, café negro, agua mineral y refresco sin azúcar.</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="ex-title" style="margin-bottom: 4px;">⚖️ Registro de Peso (Viernes en ayunas)</div>
+            <div class="ex-desc">Registra tu peso semanal para ver la tendencia real.</div>
+            <div class="weight-box">
+                <input type="number" step="0.1" id="weight-input" class="weight-input" placeholder="Ej. 91.5">
+                <button class="t-btn primary" style="flex:0 0 100px; font-size:0.85rem;" onclick="saveWeight()">Guardar</button>
+            </div>
+            <div id="weight-history" style="margin-top: 12px; font-size: 0.85rem; color: var(--muted);"></div>
+        </div>
+
+        <div class="card">
+            <div class="ex-title" style="margin-bottom: 4px;">💾 Respaldo entre Dispositivos</div>
+            <div class="ex-desc">Copia tus datos para pasarlos de tu PC a tu celular o viceversa.</div>
+            <div style="display:flex; gap:8px;">
+                <button class="t-btn" style="padding:10px;" onclick="exportData()">📋 Copiar Respaldo</button>
+                <button class="t-btn" style="padding:10px;" onclick="importData()">📥 Pegar Respaldo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CRONÓMETRO FLOTANTE -->
+<div class="timer-bar">
+    <div class="timer-display-row">
+        <div>
+            <span style="font-size: 0.72rem; color: var(--muted); display:block;" id="timer-label">CRONÓMETRO DE DESCANSO</span>
+            <div class="timer-digits" id="timer-display">01:30</div>
+        </div>
+        <div style="display:flex; gap:6px;">
+            <button class="t-btn primary" onclick="toggleTimer()" id="start-pause-btn" style="padding: 10px 14px; font-size:0.85rem;">▶ Iniciar</button>
+            <button class="t-btn danger" onclick="stopTimer()" style="padding: 10px 12px; font-size:0.85rem;">⏹</button>
+        </div>
+    </div>
+    <div class="timer-controls">
+        <button class="t-btn" onclick="startCustomTimer(20, 'Descanso Circuito (20s)')">20s</button>
+        <button class="t-btn" onclick="startCustomTimer(30, 'Estiramiento (30s)')">30s</button>
+        <button class="t-btn" onclick="startCustomTimer(40, 'Trabajo / Calentamiento (40s)')">40s</button>
+        <button class="t-btn" onclick="startCustomTimer(45, 'Estiramiento (45s)')">45s</button>
+        <button class="t-btn" onclick="startCustomTimer(90, 'Descanso Serie (90s)')">90s (Serie)</button>
+    </div>
+</div>
+
+<script>
+    const warmupData = [
+        {
+            id: 'w1',
+            name: '1. Marcha Activa + Abrazos Dinámicos',
+            badge: '60 seg',
+            desc: 'Sube tu temperatura corporal antes de tocar la barra o las anillas.',
+            steps: '<strong>Cómo hacerlo:</strong> Marcha en tu lugar a ritmo constante mientras abres los brazos en cruz y los cruzas frente a tu pecho dando un "abrazo" alternando qué brazo queda arriba.',
+            timer: 60
+        },
+        {
+            id: 'w2',
+            name: '2. Muñecas, Codos y Círculos de Hombro',
+            badge: '60 seg',
+            desc: 'Lubrica las 3 articulaciones que más trabajan en calistenia.',
+            steps: '<strong>Cómo hacerlo:</strong> 20s girando muñecas con dedos entrelazados, 20s doblando y estirando codos (tocando tus hombros) y 20s haciendo círculos gigantes de brazos hacia adelante y atrás.',
+            timer: 60
+        },
+        {
+            id: 'w3',
+            name: '3. Gato-Camello + Apertura Torácica',
+            badge: '10 reps',
+            desc: 'Prepara la columna y quita la rigidez de estar sentado.',
+            steps: '<strong>Cómo hacerlo:</strong> En 4 puntos en el piso, arquea la espalda subiendo y luego húndela sacando el pecho (5 reps). Luego pon una mano tras la nuca y gira el codo hacia el techo (5 por lado).',
+            timer: 0
+        },
+        {
+            id: 'w4',
+            name: '4. Sentadilla Profunda Asistida con Anillas',
+            badge: '10 reps',
+            desc: 'Abre cadera y calienta rodillas y tobillos sin cargar todo tu peso en frío.',
+            steps: '<strong>Cómo hacerlo:</strong> Sujeta las anillas frente a ti, baja profundo con la espalda recta, mantén 2 segundos abajo moviendo suavemente el peso de un tobillo al otro y sube ayudándote con los brazos.',
+            timer: 0
+        },
+        {
+            id: 'w5',
+            name: '5. Cuelgue Descompresivo CON PIES APOYADOS',
+            badge: '40 seg',
+            desc: 'Estira dorsales y descomprime vértebras SIN sobrecargar tus antebrazos con los 90+ kg.',
+            steps: '<strong>Cómo hacerlo:</strong> Toma la barra Ivrea pero deja las puntas de los pies en el piso o sobre una silla/banco. Dobla un poco las rodillas para que tus piernas sostengan el 40-50% de tu peso mientras relajas los hombros.',
+            timer: 40
+        },
+        {
+            id: 'w6',
+            name: '6. Dominadas Escapulares ASISTIDAS',
+            badge: '2 x 8 reps',
+            desc: 'Activa los músculos de la espalda sin quemar tu fuerza antes de la rutina.',
+            steps: '<strong>Cómo hacerlo:</strong> Con los pies apoyados en el banco/silla debajo de la barra (o inclinado en las anillas) y SIN doblar los codos, baja los hombros lejos de tus orejas juntando los omóplatos 1 segundo arriba.',
+            sets: 2,
+            timer: 0
+        }
+    ];
+
+    const strengthData = [
+        {
+            id: 's1',
+            name: '1. Dominadas Negativas Asistidas con Silla',
+            equip: 'Barra Ivrea + Silla',
+            reps: '3 x 6 reps',
+            desc: 'Elimina el impacto del salto. Sube a la silla hasta pasar la barbilla, deja las puntas de los pies rozando la silla para quitarte ~25 kg y baja resistiendo en 3-4 segundos.',
+            hasStrap: false
+        },
+        {
+            id: 's2',
+            name: '2. Flexiones Inclinadas en Anillas (Sustituye Fondos)',
+            equip: 'Anillas (Pecho/Cintura)',
+            reps: '3 x 10-12 reps',
+            desc: 'Protege tus hombros: coloca las anillas altas (pecho o cintura), da un paso atrás quedando a 45°, baja en 2s con codos a 45° del torso y empuja firme.',
+            hasStrap: true
+        },
+        {
+            id: 's3',
+            name: '3. Remos Invertidos en Ángulo Moderado',
+            equip: 'Anillas (Pecho)',
+            reps: '3 x 10-12 reps',
+            desc: 'Cuerpo recto inclinado atrás (da un paso más corto si sientes mucha carga en codos). Jala llevando anillas a las costillas, pausa 1s apretando espalda y baja en 2s.',
+            hasStrap: true
+        },
+        {
+            id: 's4',
+            name: '4. Press de Tríceps Inclinado en Anillas',
+            equip: 'Anillas (Pecho/Cintura)',
+            reps: '3 x 10 reps',
+            desc: 'De frente a las anillas con brazos extendidos e inclinado ligeramente al frente, dobla solo los codos llevando tus manos hacia la frente y extiende apretando el tríceps.',
+            hasStrap: true
+        },
+        {
+            id: 's5',
+            name: '5. Sentadilla y Desplante Asistido con Anillas',
+            equip: 'Anillas (Pecho)',
+            reps: '3 x 10 reps/lado',
+            desc: 'Sujeta ambas anillas frente a ti para quitarle presión a las rodillas. Haz un desplante hacia atrás controlado bajando en 2s y sube ayudándote ligeramente con los brazos.',
+            hasStrap: true
+        },
+        {
+            id: 's6',
+            name: '6. Plancha Abdominal Elevada + Rodillas al Pecho',
+            equip: 'Silla o Banco Firme',
+            reps: '3 x 30 seg',
+            desc: 'En lugar de colgarte de la barra cansado, apoya las manos en el borde de una silla o cama firme, aprieta abdomen y glúteos y lleva una rodilla al pecho de forma lenta y alternada.',
+            hasStrap: false
+        }
+    ];
+
+    const cooldownData = [
+        {
+            id: 'c1',
+            name: '1. Apertura de Pecho y Bíceps en Forma de "A"',
+            badge: '45 seg',
+            desc: 'Abre el pecho y relaja la parte frontal del hombro después de los ejercicios de empuje.',
+            steps: '<strong>Paso a paso:</strong> Toma las anillas, mira hacia el lado contrario y da un paso al frente. Deja tus brazos estirados atrás pero apuntando ligeramente hacia abajo (en forma de "A", nunca a la altura de la cabeza). Saca el pecho suave y respira lento.',
+            timer: 45
+        },
+        {
+            id: 'c2',
+            name: '2. Descompresión de Dorsales (Un brazo a la vez)',
+            badge: '30s / lado',
+            desc: 'Alarga toda la espalda lateral desde la axila hasta la cadera.',
+            steps: '<strong>Paso a paso:</strong> Junta las 2 anillas y agárralas solo con tu mano derecha. Da un paso largo atrás, dobla las rodillas y empuja tu cadera hacia atrás (como sentándote lejos) dejando que el brazo se estire por completo. Cambia de lado a los 30s.',
+            timer: 30
+        },
+        {
+            id: 'c3',
+            name: '3. Descarga de Muñecas y Antebrazos',
+            badge: '40 seg total',
+            desc: 'Quita la tensión acumulada en antebrazos y tendones del codo.',
+            steps: '<strong>Paso a paso:</strong> Estira el brazo derecho al frente con el codo recto y los dedos apuntando al piso (palma al frente). Con la otra mano jala suavemente los dedos hacia ti 20s. Luego gira la palma hacia ti y presiona el dorso de la mano 20s.',
+            timer: 40
+        },
+        {
+            id: 'c4',
+            name: '4. Estiramiento de Psoas con Glúteo Activo',
+            badge: '30s / pierna',
+            desc: 'Desbloquea la cadera y quita tensión de la espalda baja.',
+            steps: '<strong>Paso a paso:</strong> Pon una rodilla en el piso (sobre cojín/toalla) y el otro pie adelante. Mantén el torso totalmente derecho, APRIETA FUERTE el glúteo de la rodilla que está en el piso y avanza la cadera solo 5 cm hasta sentir el tirón en la ingle.',
+            timer: 30
+        },
+        {
+            id: 'c5',
+            name: '5. Posición del Niño con Respiración Lenta',
+            badge: '45 seg',
+            desc: 'Descarga final para tu zona lumbar y sistema nervioso.',
+            steps: '<strong>Paso a paso:</strong> De rodillas en el piso, siéntate sobre tus talones, estira los brazos lejos al frente apoyando la frente y respira inhalando en 4 segundos por la nariz y soltando el aire en 6 segundos por la boca.',
+            timer: 45
+        }
+    ];
+
+    const walkData = [
+        {
+            id: 'mj_w1',
+            name: 'Bloque 1: Caminata Matutina o de Tarde',
+            badge: '20 min',
+            desc: 'Paso firme y constante (~2,200 pasos). Ponte audífonos con música o podcast.',
+            timer: 0
+        },
+        {
+            id: 'mj_w2',
+            name: 'Bloque 2: Caminata Digestiva Post-Cena',
+            badge: '20 min',
+            desc: 'Paso ligero a moderado (~2,200 pasos). Baja la glucosa de la cena y mejora el sueño.',
+            timer: 0
+        }
+    ];
+
+    const cardioData = [
+        {
+            id: 'mj_c1',
+            name: '1. Marcha Rápida Elevando Rodillas',
+            badge: '3 x 40s',
+            desc: 'Sin saltar: sube las rodillas a la altura de la cadera a ritmo rápido bombeando con los brazos. Cero impacto en rodillas.',
+            sets: 3,
+            timer: 40
+        },
+        {
+            id: 'mj_c2',
+            name: '2. Boxeo de Sombra Continuo',
+            badge: '3 x 40s',
+            desc: 'Pies activos en el piso, lanza golpes rápidos rectos al frente manteniendo el abdomen firme y los hombros sueltos.',
+            sets: 3,
+            timer: 40
+        },
+        {
+            id: 'mj_c3',
+            name: '3. Puentes de Glúteo en el Piso',
+            badge: '3 x 40s',
+            desc: 'Acostado boca arriba con rodillas dobladas, empuja el piso con los talones subiendo la cadera, aprieta glúteos 1s arriba y baja.',
+            sets: 3,
+            timer: 40
+        }
+    ];
+
+    const mealsData = [
+        { id: 'm1', title: 'Desayuno Fijo (~530 kcal | 42g Proteína)', desc: '4 huevos enteros revueltos con espinaca/jitomate/cebolla + 3 tortillas de maíz calientes + Café negro o agua.' },
+        { id: 'm2', title: 'Comida Fuerte Base (~760 kcal | 58g Proteína)', desc: '220g de pechuga de pollo (o res magra/pescado) + 1.5 tazas de arroz cocido (o 2 papas medianas) + Medio plato de verdura + 1/3 aguacate.' },
+        { id: 'm3', title: 'Snack Blindado Anti-Ansiedad (~300 kcal | 22g Proteína)', desc: '1 taza (200g) de Yogur Griego sin azúcar + 1 fruta picada (manzana o plátano) + 15 almendras.' },
+        { id: 'm4', title: 'Cena Fija Saciante (~380 kcal | 40g Proteína)', desc: '2 latas de atún en agua (o 200g pollo deshebrado / queso panela asado) con pico de gallo + 3 tostadas horneadas + 1/4 aguacate.' },
+        { id: 'm5', title: 'Hidratación Meta (2.5 a 3 Litros)', desc: 'Agua natural, agua mineral con limón o refresco sin azúcar (Cero calorías líquidas).' }
+    ];
+
+    let state = JSON.parse(localStorage.getItem('calistenia_v2_state')) || {
+        completed: {},
+        straps: {},
+        meals: {},
+        weights: [],
+        activeTab: 'fuerza'
+    };
+
+    // Migración automática si tenía datos en la versión anterior
+    const oldState = JSON.parse(localStorage.getItem('calistenia_state'));
+    if (oldState && (!state.weights || state.weights.length === 0)) {
+        if (oldState.weights) state.weights = oldState.weights;
+        if (oldState.straps) state.straps = oldState.straps;
+        localStorage.setItem('calistenia_v2_state', JSON.stringify(state));
+    }
+
+    function saveState() {
+        localStorage.setItem('calistenia_v2_state', JSON.stringify(state));
+        updateProgress();
+    }
+
+    function renderWarmupOrCooldown(dataArray, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = dataArray.map(item => {
+            const setsCount = item.sets || 1;
+            let btns = '';
+            for (let i = 1; i <= setsCount; i++) {
+                const key = `${item.id}_s${i}`;
+                const done = state.completed[key] ? 'done' : '';
+                const label = setsCount > 1 ? `Serie ${i}` : '✓ Completar';
+                btns += `<button class="set-btn ${done}" onclick="toggleSet('${key}', 0)">${label}</button>`;
+            }
+            const timerBtn = item.timer ? `<button class="timer-quick-btn" onclick="startCustomTimer(${item.timer}, '${item.name}')">⏱ ${item.timer}s</button>` : '';
+            const stepsHtml = item.steps ? `<div class="ex-steps">${item.steps}</div>` : '';
+            return `<div class="card">
+                <div class="card-header"><span class="ex-title">${item.name}</span><span class="ex-badge">${item.badge}</span></div>
+                <div class="ex-desc">${item.desc}</div>
+                ${stepsHtml}
+                <div class="sets-grid">${btns}${timerBtn}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderAll() {
+        renderWarmupOrCooldown(warmupData, 'warmup-list');
+
+        // Render Strength (L-M-V)
+        const sContainer = document.getElementById('strength-list');
+        sContainer.innerHTML = strengthData.map(item => {
+            let btns = '';
+            for (let i = 1; i <= 3; i++) {
+                const key = `${item.id}_s${i}`;
+                const done = state.completed[key] ? 'done' : '';
+                btns += `<button class="set-btn ${done}" onclick="toggleSet('${key}', 90)">Serie ${i}</button>`;
+            }
+            const strapVal = state.straps[item.id] || '';
+            const strapHtml = item.hasStrap ? `
+                <div class="strap-row">
+                    <span>🔢 Número en correa de anillas:</span>
+                    <input type="number" class="strap-input" value="${strapVal}" placeholder="#" onchange="saveStrap('${item.id}', this.value)">
+                </div>` : '';
+            return `<div class="card">
+                <div class="card-header"><span class="ex-title">${item.name}</span><span class="ex-badge">${item.reps}</span></div>
+                <div class="ex-desc"><strong>${item.equip}:</strong> ${item.desc}</div>
+                ${strapHtml}
+                <div class="sets-grid">${btns}</div>
+            </div>`;
+        }).join('');
+
+        renderWarmupOrCooldown(cooldownData, 'cooldown-list');
+
+        // Render M-J Walk & Cardio & Mobility
+        renderWarmupOrCooldown(walkData, 'walk-list');
+        renderWarmupOrCooldown(cardioData, 'cardio-list');
+        const mobData = cooldownData.map(c => ({ ...c, id: 'mj_' + c.id }));
+        renderWarmupOrCooldown(mobData, 'mobility-list');
+
+        // Render Meals
+        const mContainer = document.getElementById('meals-list');
+        mContainer.innerHTML = mealsData.map(m => {
+            const checked = state.meals[m.id] ? 'checked' : '';
+            return `<label class="meal-item">
+                <input type="checkbox" class="meal-check" ${checked} onchange="toggleMeal('${m.id}', this.checked)">
+                <div>
+                    <div style="font-weight:700; color:#fff; font-size:0.92rem;">${m.title}</div>
+                    <div style="font-size:0.84rem; color:var(--muted); margin-top:2px;">${m.desc}</div>
+                </div>
+            </label>`;
+        }).join('');
+
+        renderWeights();
+        updateProgress();
+    }
+
+    function toggleSet(key, autoTimerSeconds) {
+        state.completed[key] = !state.completed[key];
+        saveState();
+        renderAll();
+        if (state.completed[key] && autoTimerSeconds > 0) {
+            startCustomTimer(autoTimerSeconds, 'Descanso de Serie (90s)');
+        }
+    }
+
+    function saveStrap(id, val) {
+        state.straps[id] = val;
+        saveState();
+    }
+
+    function updateProgress() {
+        let keysToCount = [];
+        if (state.activeTab === 'fuerza') {
+            warmupData.forEach(item => {
+                const s = item.sets || 1;
+                for (let i = 1; i <= s; i++) keysToCount.push(`${item.id}_s${i}`);
+            });
+            strengthData.forEach(item => {
+                for (let i = 1; i <= 3; i++) keysToCount.push(`${item.id}_s${i}`);
+            });
+            cooldownData.forEach(item => keysToCount.push(`${item.id}_s1`));
+        } else if (state.activeTab === 'quema') {
+            walkData.forEach(item => keysToCount.push(`${item.id}_s1`));
+            cardioData.forEach(item => {
+                for (let i = 1; i <= 3; i++) keysToCount.push(`${item.id}_s${i}`);
+            });
+            cooldownData.forEach(item => keysToCount.push(`mj_${item.id}_s1`));
+        } else {
+            mealsData.forEach(m => keysToCount.push(`meal_${m.id}`));
+        }
+
+        const totalItems = keysToCount.length;
+        let doneItems = 0;
+        if (state.activeTab === 'dieta') {
+            doneItems = Object.values(state.meals).filter(Boolean).length;
+        } else {
+            doneItems = keysToCount.filter(k => state.completed[k]).length;
+        }
+
+        const pct = totalItems > 0 ? Math.min(100, Math.round((doneItems / totalItems) * 100)) : 0;
+        document.getElementById('progress-bar').style.width = pct + '%';
+        document.getElementById('progress-text').innerText = `${pct}% (${doneItems}/${totalItems})`;
+    }
+
+    function resetWorkout(type) {
+        if (confirm('¿Reiniciar las casillas completadas de este día? (Tus números de correa y pesos se conservan).')) {
+            if (type === 'fuerza') {
+                Object.keys(state.completed).forEach(k => {
+                    if (!k.startsWith('mj_')) delete state.completed[k];
+                });
+            } else {
+                Object.keys(state.completed).forEach(k => {
+                    if (k.startsWith('mj_')) delete state.completed[k];
+                });
+            }
+            saveState();
+            renderAll();
+        }
+    }
+
+    function toggleMeal(id, val) {
+        state.meals[id] = val;
+        saveState();
+    }
+
+    function resetMeals() {
+        state.meals = {};
+        saveState();
+        renderAll();
+    }
+
+    function saveWeight() {
+        const input = document.getElementById('weight-input');
+        const val = parseFloat(input.value);
+        if (!val) return;
+        const date = new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+        state.weights.unshift({ date, val });
+        input.value = '';
+        saveState();
+        renderWeights();
+    }
+
+    function renderWeights() {
+        const container = document.getElementById('weight-history');
+        if (!state.weights || state.weights.length === 0) {
+            container.innerHTML = 'Sin registros aún. Ingresa tu peso de este viernes para iniciar el historial.';
+            return;
+        }
+        const firstWeight = state.weights[state.weights.length - 1].val;
+        const currentWeight = state.weights[0].val;
+        const diff = (currentWeight - firstWeight).toFixed(1);
+        const sign = diff > 0 ? '+' : '';
+        container.innerHTML = `<div style="margin-bottom:6px; color:var(--accent); font-weight:700;">Cambio desde primer registro (${firstWeight} kg): ${sign}${diff} kg</div>` +
+            state.weights.slice(0, 8).map(w => `<div>📅 ${w.date}: <strong>${w.val} kg</strong></div>`).join('');
+    }
+
+    function exportData() {
+        const dataStr = JSON.stringify(state);
+        navigator.clipboard.writeText(dataStr).then(() => {
+            alert('¡Respaldo copiado al portapapeles! Pégalo en un mensaje para ti mismo y usa "Pegar Respaldo" en tu otro dispositivo.');
+        }).catch(() => {
+            prompt('Copia este texto de respaldo:', dataStr);
+        });
+    }
+
+    function importData() {
+        const input = prompt('Pega aquí el texto de respaldo que copiaste de tu otro dispositivo:');
+        if (!input) return;
+        try {
+            const parsed = JSON.parse(input);
+            if (parsed && typeof parsed === 'object') {
+                state = parsed;
+                saveState();
+                renderAll();
+                alert('¡Datos restaurados con éxito!');
+            }
+        } catch (e) {
+            alert('El texto pegado no es válido.');
+        }
+    }
+
+    function switchTab(tab, btn) {
+        state.activeTab = tab;
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        btn.classList.add('active');
+        updateProgress();
+    }
+
+    // Timer Logic with Web Audio API Beep
+    let timerInterval = null;
+    let remainingSeconds = 90;
+    let isRunning = false;
+
+    function updateTimerDisplay() {
+        const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+        const secs = String(remainingSeconds % 60).padStart(2, '0');
+        const el = document.getElementById('timer-display');
+        el.innerText = `${mins}:${secs}`;
+    }
+
+    function playBeep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [0, 0.25, 0.5].forEach(delay => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 880;
+                osc.type = 'sine';
+                osc.start(ctx.currentTime + delay);
+                osc.stop(ctx.currentTime + delay + 0.18);
+            });
+            if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        } catch (e) {}
+    }
+
+    function startCustomTimer(seconds, label) {
+        clearInterval(timerInterval);
+        remainingSeconds = seconds;
+        document.getElementById('timer-label').innerText = label.toUpperCase();
+        const disp = document.getElementById('timer-display');
+        disp.classList.remove('finished');
+        disp.classList.add('running');
+        isRunning = true;
+        document.getElementById('start-pause-btn').innerText = '⏸ Pausa';
+        updateTimerDisplay();
+
+        timerInterval = setInterval(() => {
+            remainingSeconds--;
+            updateTimerDisplay();
+            if (remainingSeconds <= 0) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                disp.classList.remove('running');
+                disp.classList.add('finished');
+                document.getElementById('start-pause-btn').innerText = '▶ Iniciar';
+                document.getElementById('timer-label').innerText = '¡TIEMPO TERMINADO! A DARLE 🔥';
+                playBeep();
+            }
+        }, 1000);
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            document.getElementById('start-pause-btn').innerText = '▶ Reanudar';
+            document.getElementById('timer-display').classList.remove('running');
+        } else {
+            if (remainingSeconds <= 0) remainingSeconds = 90;
+            startCustomTimer(remainingSeconds, document.getElementById('timer-label').innerText);
+        }
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        remainingSeconds = 90;
+        const disp = document.getElementById('timer-display');
+        disp.classList.remove('running', 'finished');
+        document.getElementById('start-pause-btn').innerText = '▶ Iniciar';
+        document.getElementById('timer-label').innerText = 'CRONÓMETRO DE DESCANSO';
+        updateTimerDisplay();
+    }
+
+    renderAll();
+</script>
+</body>
+</html>
